@@ -1,11 +1,13 @@
+#ifndef MATRIX_OPERATIONS_H
+#define MATRIX_OPERATIONS_H
+
 #include <iostream>
-#include <cstdlib>
-#include <ctime>
 #include <string>
+#include <random>  // For C++11 random number generation
 
 using namespace std;
 
-int** allocateMatrix(const int rows, const int cols) {
+inline int** allocateMatrix(const int rows, const int cols) {
     int** matrix = new int*[rows];
     for (int i = 0; i < rows; i++) {
         matrix[i] = new int[cols];
@@ -13,15 +15,18 @@ int** allocateMatrix(const int rows, const int cols) {
     return matrix;
 }
 
-void deleteMatrix(int** matrix, const int rows) {
+inline void deleteMatrix(int** matrix, const int rows) {
     for (int i = 0; i < rows; i++) {
         delete[] matrix[i];
     }
     delete[] matrix;
 }
 
-void fillMatrix(int** matrix, const int rows, const int cols, const string& method = "random") {
-    srand(time(nullptr));
+inline void fillMatrix(int** matrix, const int rows, const int cols, const string& method = "random") {
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<> dis(1, 10);
+
     if (method == "zero") {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
@@ -38,19 +43,19 @@ void fillMatrix(int** matrix, const int rows, const int cols, const string& meth
     } else {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                matrix[i][j] = rand() % 10 + 1;
+                matrix[i][j] = dis(gen); // Using the better random number generator
             }
         }
     }
 }
 
-void swapMainAndMinorDiagonals(int** matrix, const int n) {
+inline void swapMainAndMinorDiagonals(int** matrix, const int n) {
     for (int i = 0; i < n; i++) {
         swap(matrix[i][i], matrix[i][n - i - 1]);
     }
 }
 
-void sumSubtractMatrix(int** A, int** B, int** result, const int rows, const int cols, const char operation = '+') {
+inline void sumSubtractMatrix(int** A, int** B, int** result, const int rows, const int cols, const char operation = '+') {
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
             result[i][j] = (operation == '-') ? (A[i][j] - B[i][j]) : (A[i][j] + B[i][j]);
@@ -58,7 +63,7 @@ void sumSubtractMatrix(int** A, int** B, int** result, const int rows, const int
     }
 }
 
-void matrixMultiply(int** A, int** B, int** result, const int rowA, const int colA_rowB, const int colB) {
+inline void matrixMultiply(int** A, int** B, int** result, const int rowA, const int colA_rowB, const int colB) {
     for (int i = 0; i < rowA; i++) {
         for (int j = 0; j < colB; j++) {
             result[i][j] = 0;
@@ -69,7 +74,7 @@ void matrixMultiply(int** A, int** B, int** result, const int rowA, const int co
     }
 }
 
-void displayMatrix(int** matrix, const int rows, const int cols) {
+inline void displayMatrix(int** matrix, const int rows, const int cols) {
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
             cout << matrix[i][j] << " ";
@@ -77,3 +82,5 @@ void displayMatrix(int** matrix, const int rows, const int cols) {
         cout << endl;
     }
 }
+
+#endif // MATRIX_OPERATIONS_H
