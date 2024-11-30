@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <string>
-#include <random>  // For C++11 random number generation
+#include <random>
 
 using namespace std;
 
@@ -43,7 +43,7 @@ inline void fillMatrix(int** matrix, const int rows, const int cols, const strin
     } else {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                matrix[i][j] = dis(gen); // Using the better random number generator
+                matrix[i][j] = dis(gen);
             }
         }
     }
