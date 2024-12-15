@@ -1,138 +1,207 @@
 #include <iostream>
-#include "matrixFunctions.h"
+#include <string>
+#include <random>
 
 using namespace std;
 
+int **allocateMatrix(const int rows, const int cols) {
+    int **matrix = new int *[rows];
+    for (int i = 0; i < rows; i++) {
+        matrix[i] = new int[cols];
+    }
+    return matrix;
+}
+
+inline void deleteMatrix(int **&matrix, const int rows) {
+    for (int i = 0; i < rows; i++) {
+        delete[] matrix[i];
+    }
+    delete[] matrix;
+    matrix = nullptr;
+}
+
+void fillMatrix(int **matrix, const int rows, const int cols, const string &method = "random") {
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<> dis(1, 10);
+
+    if (method == "zero") {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                matrix[i][j] = 0;
+            }
+        }
+    } else if (method == "custom") {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                cout << "Enter value for row " << i << ", col " << j << ": ";
+                cin >> matrix[i][j];
+            }
+        }
+    } else {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                matrix[i][j] = dis(gen);
+            }
+        }
+    }
+}
+
+void swapMainAndMinorDiagonals(int **matrix, const int n) {
+    for (int i = 0; i < n; i++) {
+        swap(matrix[i][i], matrix[i][n - i - 1]);
+    }
+}
+
+void sumSubtractMatrix(int **A, int **B, int **result, const int rows, const int cols, const char operation = '+') {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            result[i][j] = (operation == '-') ? (A[i][j] - B[i][j]) : (A[i][j] + B[i][j]);
+        }
+    }
+}
+
+void matrixMultiply(int **A, int **B, int **result, const int rowA, const int colA_rowB, const int colB) {
+    for (int i = 0; i < rowA; i++) {
+        for (int j = 0; j < colB; j++) {
+            result[i][j] = 0;
+            for (int k = 0; k < colA_rowB; k++) {
+                result[i][j] += A[i][k] * B[k][j];
+            }
+        }
+    }
+}
+
+void displayMatrix(int **matrix, const int rows, const int cols) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            cout << matrix[i][j] << " ";
+        }
+        cout << endl;
+    }
+}
+
+void displayMenu() {
+    cout << "\nMatrix Calculator Menu:\n";
+    cout << "1. Add Matrices\n";
+    cout << "2. Subtract Matrices\n";
+    cout << "3. Multiply Matrices\n";
+    cout << "4. Swap Main and Minor Diagonals (Square Matrix)\n";
+    cout << "5. Exit\n";
+    cout << "Choose an option: ";
+}
+
+int getPositiveInput(const string &prompt) {
+    int value;
+    while (true) {
+        cout << prompt;
+        cin >> value;
+        if (value > 0) return value;
+        cout << "Invalid input. Please enter a positive integer.\n";
+    }
+}
+
+void getMatrixDimensions(int &rows, int &cols, const string &matrixName) {
+    while (true) {
+        rows = getPositiveInput("Enter rows for " + matrixName + ": ");
+        cols = getPositiveInput("Enter columns for " + matrixName + ": ");
+        if (rows > 0 && cols > 0) break;
+        cout << "Invalid input. Rows and columns must be positive integers.\n";
+    }
+}
+
+string getFillMethod(const string &matrixName) {
+    string method;
+    while (true) {
+        cout << "Fill " << matrixName << " (random/custom/zero): ";
+        cin >> method;
+        if (method == "random" || method == "custom" || method == "zero") return method;
+        cout << "Invalid choice. Please enter 'random', 'custom', or 'zero'.\n";
+    }
+}
+
+int **createAndFillMatrix(int rows, int cols, const string &matrixName) {
+    int **matrix = allocateMatrix(rows, cols);
+    fillMatrix(matrix, rows, cols, getFillMethod(matrixName));
+    return matrix;
+}
+
+void handleMatrixOperation(const string &operationType) {
+    int rows, cols;
+    getMatrixDimensions(rows, cols, "the matrices");
+
+    int **matrixA = createAndFillMatrix(rows, cols, "Matrix A");
+    int **matrixB = createAndFillMatrix(rows, cols, "Matrix B");
+    int **result = allocateMatrix(rows, cols);
+
+    char operation = (operationType == "addition") ? '+' : '-';
+    sumSubtractMatrix(matrixA, matrixB, result, rows, cols, operation);
+
+    cout << "Result:\n";
+    displayMatrix(result, rows, cols);
+
+    deleteMatrix(matrixA, rows);
+    deleteMatrix(matrixB, rows);
+    deleteMatrix(result, rows);
+}
+
+void handleMultiplication() {
+    int rowsA, colsA, rowsB, colsB;
+    getMatrixDimensions(rowsA, colsA, "Matrix A");
+    while (true) {
+        getMatrixDimensions(rowsB, colsB, "Matrix B");
+        if (colsA == rowsB) break;
+        cout << "Invalid input. Columns of Matrix A must equal rows of Matrix B.\n";
+    }
+
+    int **matrixA = createAndFillMatrix(rowsA, colsA, "Matrix A");
+    int **matrixB = createAndFillMatrix(rowsB, colsB, "Matrix B");
+    int **result = allocateMatrix(rowsA, colsB);
+
+    matrixMultiply(matrixA, matrixB, result, rowsA, colsA, colsB);
+    cout << "Result of multiplication:\n";
+    displayMatrix(result, rowsA, colsB);
+
+    deleteMatrix(matrixA, rowsA);
+    deleteMatrix(matrixB, rowsB);
+    deleteMatrix(result, rowsA);
+}
+
+void handleDiagonalSwap() {
+    int n = getPositiveInput("Enter the size of the square matrix: ");
+    int **matrix = createAndFillMatrix(n, n, "Matrix");
+
+    swapMainAndMinorDiagonals(matrix, n);
+    cout << "Matrix after swapping diagonals:\n";
+    displayMatrix(matrix, n, n);
+
+    deleteMatrix(matrix, n);
+}
 
 int main() {
-    int choice;
-    bool exitProgram = false;
-
-    while (!exitProgram) {
-        cout << "\nMatrix Calculator Menu:\n";
-        cout << "1. Fill a matrix\n";
-        cout << "2. Display a matrix\n";
-        cout << "3. Swap main and minor diagonals (square matrix only)\n";
-        cout << "4. Add two matrices\n";
-        cout << "5. Subtract two matrices\n";
-        cout << "6. Multiply two matrices\n";
-        cout << "7. Exit\n";
-        cout << "Enter your choice: ";
+    while (true) {
+        displayMenu();
+        int choice;
         cin >> choice;
 
         switch (choice) {
-            case 1: {
-                int rows, cols;
-                cout << "Enter the number of rows: ";
-                cin >> rows;
-                cout << "Enter the number of columns: ";
-                cin >> cols;
-                int **matrix = allocateMatrix(rows, cols);
-                fillMatrix(matrix, rows, cols, "custom");
-                cout << "Matrix filled successfully.\n";
-                displayMatrix(matrix, rows, cols);
-                deleteMatrix(matrix, rows);
+            case 1:
+                handleMatrixOperation("addition");
                 break;
-            }
-            case 2: {
-                int rows, cols;
-                cout << "Enter the number of rows: ";
-                cin >> rows;
-                cout << "Enter the number of columns: ";
-                cin >> cols;
-                int **matrix = allocateMatrix(rows, cols);
-                fillMatrix(matrix, rows, cols);
-                cout << "Matrix:\n";
-                displayMatrix(matrix, rows, cols);
-                deleteMatrix(matrix, rows);
+            case 2:
+                handleMatrixOperation("subtraction");
                 break;
-            }
-            case 3: {
-                int n;
-                cout << "Enter the size of the square matrix: ";
-                cin >> n;
-                int **matrix = allocateMatrix(n, n);
-                fillMatrix(matrix, n, n);
-                cout << "Original Matrix:\n";
-                displayMatrix(matrix, n, n);
-                swapMainAndMinorDiagonals(matrix, n);
-                cout << "Matrix after swapping diagonals:\n";
-                displayMatrix(matrix, n, n);
-                deleteMatrix(matrix, n);
+            case 3:
+                handleMultiplication();
                 break;
-            }
-            case 4: {
-                int rows, cols;
-                cout << "Enter the dimensions of the matrices (rows and columns): ";
-                cin >> rows >> cols;
-                int **A = allocateMatrix(rows, cols);
-                int **B = allocateMatrix(rows, cols);
-                int **result = allocateMatrix(rows, cols);
-                cout << "Fill matrix A:\n";
-                fillMatrix(A, rows, cols, "custom");
-                cout << "Fill matrix B:\n";
-                fillMatrix(B, rows, cols, "custom");
-                sumSubtractMatrix(A, B, result, rows, cols);
-                cout << "Result of addition:\n";
-                displayMatrix(result, rows, cols);
-                deleteMatrix(A, rows);
-                deleteMatrix(B, rows);
-                deleteMatrix(result, rows);
+            case 4:
+                handleDiagonalSwap();
                 break;
-            }
-            case 5: {
-                int rows, cols;
-                cout << "Enter the dimensions of the matrices (rows and columns): ";
-                cin >> rows >> cols;
-                int **A = allocateMatrix(rows, cols);
-                int **B = allocateMatrix(rows, cols);
-                int **result = allocateMatrix(rows, cols);
-                cout << "Fill matrix A:\n";
-                fillMatrix(A, rows, cols, "custom");
-                cout << "Fill matrix B:\n";
-                fillMatrix(B, rows, cols, "custom");
-                sumSubtractMatrix(A, B, result, rows, cols, '-');
-                cout << "Result of subtraction:\n";
-                displayMatrix(result, rows, cols);
-                deleteMatrix(A, rows);
-                deleteMatrix(B, rows);
-                deleteMatrix(result, rows);
-                break;
-            }
-            case 6: {
-                int rowA, colA, rowB, colB;
-                cout << "Enter dimensions of matrix A (rows and cols): ";
-                cin >> rowA >> colA;
-                cout << "Enter dimensions of matrix B (rows and cols): ";
-                cin >> rowB >> colB;
-                if (colA != rowB) {
-                    cout << "Matrix multiplication not possible. Columns of A must equal rows of B.\n";
-                    break;
-                }
-                int **A = allocateMatrix(rowA, colA);
-                int **B = allocateMatrix(rowB, colB);
-                int **result = allocateMatrix(rowA, colB);
-                cout << "Fill matrix A:\n";
-                fillMatrix(A, rowA, colA, "custom");
-                cout << "Fill matrix B:\n";
-                fillMatrix(B, rowB, colB, "custom");
-                matrixMultiply(A, B, result, rowA, colA, colB);
-                cout << "Result of multiplication:\n";
-                displayMatrix(result, rowA, colB);
-                deleteMatrix(A, rowA);
-                deleteMatrix(B, rowB);
-                deleteMatrix(result, rowA);
-                break;
-            }
-            case 7:
-                exitProgram = true;
-                cout << "Exiting program. Goodbye!\n";
-                break;
+            case 5:
+                cout << "Exiting program.\n";
+                return 0;
             default:
                 cout << "Invalid choice. Please try again.\n";
-                break;
         }
     }
-
-    return 0;
 }
