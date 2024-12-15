@@ -137,6 +137,10 @@ void handleMatrixOperation(const string &operationType) {
     char operation = (operationType == "addition") ? '+' : '-';
     sumSubtractMatrix(matrixA, matrixB, result, rows, cols, operation);
 
+    cout << "Matrix A:\n";
+    displayMatrix(matrixA, rows, cols);
+    cout << "Matrix B:\n";
+    displayMatrix(matrixB, rows, cols);
     cout << "Result:\n";
     displayMatrix(result, rows, cols);
 
@@ -159,6 +163,10 @@ void handleMultiplication() {
     int **result = allocateMatrix(rowsA, colsB);
 
     matrixMultiply(matrixA, matrixB, result, rowsA, colsA, colsB);
+    cout << "Matrix A:\n";
+    displayMatrix(matrixA, rowsA, colsA);
+    cout << "Matrix B:\n";
+    displayMatrix(matrixB, rowsB, colsB);
     cout << "Result of multiplication:\n";
     displayMatrix(result, rowsA, colsB);
 
@@ -171,6 +179,7 @@ void handleDiagonalSwap() {
     int n = getPositiveInput("Enter the size of the square matrix: ");
     int **matrix = createAndFillMatrix(n, n, "Matrix");
 
+    displayMatrix(matrix, n, n);
     swapMainAndMinorDiagonals(matrix, n);
     cout << "Matrix after swapping diagonals:\n";
     displayMatrix(matrix, n, n);
